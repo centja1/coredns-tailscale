@@ -4,7 +4,7 @@ import (
 	"context"
 	"net"
 	"strings"
-
+	"math/rand"
 	"github.com/miekg/dns"
 
 	"github.com/coredns/coredns/plugin"
@@ -68,21 +68,35 @@ func (t *Tailscale) resolveCNAME(domainName string, msg *dns.Msg, lookupType int
 	targets, ok := t.entries[name]["CNAME"]
 	if ok {
 		log.Debugf("Found a CNAME entry after lookup for: %s", name)
+		ansIdx := 0
+		if t.singleCname == true {
+			log.Debug("Choosing random CNAME record to return")
+			ansIdx = rand.Intn(len(targets))
+		}
 		for _, target := range targets {
-			msg.Answer = append(msg.Answer, &dns.CNAME{
-				Hdr:    dns.RR_Header{Name: domainName, Rrtype: dns.TypeCNAME, Class: dns.ClassINET, Ttl: 60},
-				Target: target,
-			})
+			if ansIdx == 0 {
+				msg.Answer = append(msg.Answer, &dns.CNAME{
+					Hdr:    dns.RR_Header{Name: domainName, Rrtype: dns.TypeCNAME, Class: dns.ClassINET, Ttl: 60},
+					Target: target,
+				})
+	
+				// Resolve local zone A or AAAA records if they exist for the referenced target
+				if lookupType == TypeAll || lookupType == TypeA {
+					log.Debug("CNAME record found, lookup up local recursive A")
+					t.resolveA(target, msg)
+				}
+				if lookupType == TypeAll || lookupType == TypeAAAA {
+					log.Debug("CNAME record found, lookup up local recursive AAAA")
+					t.resolveAAAA(target, msg)
+				}
 
-			// Resolve local zone A or AAAA records if they exist for the referenced target
-			if lookupType == TypeAll || lookupType == TypeA {
-				log.Debug("CNAME record found, lookup up local recursive A")
-				t.resolveA(target, msg)
+				if t.singleCname == true { 
+					break 
+				}
+			} else {
+				ansIdx--
 			}
-			if lookupType == TypeAll || lookupType == TypeAAAA {
-				log.Debug("CNAME record found, lookup up local recursive AAAA")
-				t.resolveAAAA(target, msg)
-			}
+
 		}
 	}
 

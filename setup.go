@@ -13,6 +13,7 @@ func init() { plugin.Register("tailscale", setup) }
 // for parsing any extra options the example plugin may have. The first token this function sees is "example".
 func setup(c *caddy.Controller) error {
 	ts := &Tailscale{}
+	ts.singleCname = false
 	for c.Next() {
 		args := c.RemainingArgs()
 		if len(args) != 1 {
@@ -30,6 +31,9 @@ func setup(c *caddy.Controller) error {
 				ts.authkey = args[0]
 			case "fallthrough":
 				ts.fall.SetZonesFromArgs(c.RemainingArgs())
+			case "single_cname":
+				ts.singleCname = true
+				args := c.RemainingArgs()
 			default:
 				return plugin.Error("tailscale", c.ArgErr())
 			}

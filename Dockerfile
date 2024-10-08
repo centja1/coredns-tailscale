@@ -1,4 +1,4 @@
-FROM golang:1.22.2-alpine3.19 AS build
+FROM golang:alpine AS build
 
 WORKDIR /go/src/coredns
 
@@ -15,7 +15,7 @@ RUN cd plugin && \
     make check && \
     go build
 
-FROM alpine:3.19.1
+FROM alpine
 RUN apk add --no-cache ca-certificates
 
 COPY --from=build /go/src/coredns/coredns /
