@@ -24,6 +24,7 @@ type Tailscale struct {
 	authkey string
 	srv     *tsnet.Server
 	lc      *tailscale.LocalClient
+	singleCname bool
 
 	mu      sync.RWMutex
 	entries map[string]map[string][]string
