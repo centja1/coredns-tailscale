@@ -2,9 +2,10 @@ package tailscale
 
 import (
 	"context"
+	"math/rand"
 	"net"
 	"strings"
-	"math/rand"
+
 	"github.com/miekg/dns"
 
 	"github.com/coredns/coredns/plugin"
@@ -69,7 +70,7 @@ func (t *Tailscale) resolveCNAME(domainName string, msg *dns.Msg, lookupType int
 	if ok {
 		log.Debugf("Found a CNAME entry after lookup for: %s", name)
 		ansIdx := 0
-		if t.singleCname == true {
+		if t.singleCname {
 			log.Debug("Choosing random CNAME record to return")
 			ansIdx = rand.Intn(len(targets))
 		}
@@ -79,7 +80,7 @@ func (t *Tailscale) resolveCNAME(domainName string, msg *dns.Msg, lookupType int
 					Hdr:    dns.RR_Header{Name: domainName, Rrtype: dns.TypeCNAME, Class: dns.ClassINET, Ttl: 60},
 					Target: target,
 				})
-	
+
 				// Resolve local zone A or AAAA records if they exist for the referenced target
 				if lookupType == TypeAll || lookupType == TypeA {
 					log.Debug("CNAME record found, lookup up local recursive A")
@@ -90,8 +91,8 @@ func (t *Tailscale) resolveCNAME(domainName string, msg *dns.Msg, lookupType int
 					t.resolveAAAA(target, msg)
 				}
 
-				if t.singleCname == true { 
-					break 
+				if t.singleCname {
+					break
 				}
 			} else {
 				ansIdx--
