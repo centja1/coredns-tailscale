@@ -33,7 +33,6 @@ func setup(c *caddy.Controller) error {
 				ts.fall.SetZonesFromArgs(c.RemainingArgs())
 			case "single_cname":
 				ts.singleCname = true
-				args := c.RemainingArgs()
 			default:
 				return plugin.Error("tailscale", c.ArgErr())
 			}
