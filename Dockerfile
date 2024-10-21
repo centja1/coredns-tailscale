@@ -15,7 +15,7 @@ RUN cd plugin && \
     make check && \
     go build
 
-FROM alpine:3.19.1
+FROM alpine
 RUN apk add --no-cache ca-certificates
 
 COPY --from=build /go/src/coredns/coredns /

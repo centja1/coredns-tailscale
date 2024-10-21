@@ -1,4 +1,4 @@
-module github.com/damomurf/coredns-tailscale
+module github.com/centja1/coredns-tailscale
 
 go 1.23.2
 
